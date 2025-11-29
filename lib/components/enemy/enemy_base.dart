@@ -2,7 +2,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import '/components/player.dart';
 import '/astro_paws.dart';
-
+import 'dart:async'; // для Timer
 import '../bullet.dart';
 import '../explosion.dart';
 
@@ -13,70 +13,125 @@ enum EnemyType {
   four,
 }
 
-class EnemyBase extends SpriteComponent
+class EnemyBase extends SpriteAnimationComponent
     with HasGameReference<AstroPawsGame>, CollisionCallbacks {
-  var enemySize = 64.0;
-  var enemyLife = 1;
-  var enemySpritePath = '';
-  var enemySpeed = EnemyType.three;
+  final double enemySize;
+  int enemyLife;
+  final String enemySpritePath;
+  final EnemyType enemySpeed;
+  final bool enemyNeedsAnimation;
+  bool _canDealDamage = true; // флаг урона
+  final double damageCooldown = 1.0; // 1 секунда между ударами
+  final int damageAmount = 20; // сколько урона наносит враг
 
-  EnemyBase(
-      {super.position,
-      required this.enemySize,
-      required this.enemyLife,
-      required this.enemySpritePath,
-      required this.enemySpeed})
-      : super(
-          size: Vector2.all(enemySize),
-          anchor: Anchor.center,
-        );
+  EnemyBase({
+    super.position,
+    required this.enemySize,
+    required this.enemyLife,
+    required this.enemySpritePath,
+    required this.enemySpeed,
+    this.enemyNeedsAnimation = true,
+  }) : super(
+    size: Vector2.all(enemySize),
+    anchor: Anchor.center,
+  );
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    sprite = await game.loadSprite(enemySpritePath);
+    if (enemyNeedsAnimation) {
+      animation = await game.loadSpriteAnimation(
+        enemySpritePath,
+        SpriteAnimationData.sequenced(
+          amount: 4,
+          stepTime: 0.5,
+          textureSize: Vector2(62, 62),
+        ),
+      );
+    } else {
+      // Статичный враг (один кадр)
+      animation = SpriteAnimation.spriteList(
+        [
+          await game.loadSprite(enemySpritePath),
+        ],
+        stepTime: double.infinity,
 
-    add(RectangleHitbox());
+
+      );
+
+
+    }
+
+    // hitbox других размеров лучше всего
+    add(RectangleHitbox.relative(
+      Vector2(1.5, 0.5), // 50% ширины и высоты от спрайта
+      parentSize: size,
+      anchor: Anchor.center,
+      position: Vector2.zero(), // точно по центру
+    ));
+
+  }
+
+  double get speed {
+    switch (enemySpeed) {
+      case EnemyType.one:
+        return 60;
+      case EnemyType.two:
+        return 120;
+      case EnemyType.three:
+        return 180;
+      case EnemyType.four:
+        return 240;
+    }
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    if (enemySpeed == EnemyType.one) {
-      position.y += dt * 60;
-    } else if (enemySpeed == EnemyType.two) {
-      position.y += dt * 120;
-    } else if (enemySpeed == EnemyType.three) {
-      position.y += dt * 180;
-    } else if (enemySpeed == EnemyType.four) {
-      position.y += dt * 240;
-    }
-
+    position.y += dt * speed;
     if (position.y > game.size.y) {
       removeFromParent();
     }
+
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    // If the enemy collides with a bullet and is at least 10 pixels below the top of the screen
-    if (other is Bullet && position.y > 10) {
+  void onCollision(Set<Vector2> _, PositionComponent other) {
+    if (other is Player) {
+      if (_canDealDamage) {
+        game.PlayerHP -= damageAmount;
+       /* print('Игрок получил урон! HP: ${game.PlayerHP}');*/
+
+        // Проверяем смерть игрока
+        if (game.PlayerHP <= 0) {
+/*          print('HP = 0 → Game Over');*/
+          game.gameOver();
+        }
+
+        // ⚡ Блокируем урон на 1 секунду
+        _canDealDamage = false;
+        Future.delayed(Duration(seconds: damageCooldown.toInt()), () {
+          _canDealDamage = true;
+        });
+      }
+    }
+
+    if (other is Bullet && position.y > 8) {
       if (enemyLife > 1) {
         enemyLife -= 1;
         other.removeFromParent();
         return;
       }
+
       removeFromParent();
       game.add(Explosion(position: position));
       other.removeFromParent();
-      game.currentScore += enemyLife;
+      game.currentScore++;
     }
 
-    if (other is Player && game.hasPawShield == false) {
-      game.gameOver();
-    }
-    super.onCollision(intersectionPoints, other);
+    super.onCollision(_, other);
   }
 }
+

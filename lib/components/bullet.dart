@@ -2,45 +2,51 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import '/astro_paws.dart';
 
-class Bullet extends SpriteAnimationComponent
-    with HasGameReference<AstroPawsGame> {
+class Bullet extends SpriteComponent
+    with HasGameReference<AstroPawsGame>, CollisionCallbacks {
   final double angleOffset;
+  final bool isEnemyBullet;
 
-  Bullet({super.position, this.angleOffset = 0})
-      : super(
-          size: Vector2(50, 50),
-          anchor: Anchor.center,
-        );
+  Bullet({
+    required Vector2 position,
+    this.angleOffset = 0.0,
+    this.isEnemyBullet = false,
+  }) : super(
+    position: position,
+    size: Vector2(6, 18),
+    anchor: Anchor.center,
+  );
+
+  static const double bulletSpeed = 500; // чуть быстрее и стабильнее
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    animation = await game.loadSpriteAnimation(
-      'hair_ball.png',
-      SpriteAnimationData.sequenced(
-        amount: 4,
-        stepTime: 0.2,
-        textureSize: Vector2.all(32),
-      ),
+    debugMode = false;
+
+    sprite = await game.loadSprite(
+      isEnemyBullet ? 'enemy_bullet.png' : 'bullet.png',
     );
 
-    add(RectangleHitbox(collisionType: CollisionType.passive));
+    // Центрированный хитбокс
+    add(RectangleHitbox.relative(
+      Vector2(0.8, 0.8),
+      parentSize: size,
+      anchor: Anchor.center,
+    ));
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    double speed = game.hasKibble ? 600 : 400;
-    Vector2 direction = Vector2(0, -1)
-      ..rotate(angleOffset); // fire upward with optional angle
+    // Вычисляем направление движения
+    final velocity = isEnemyBullet ? bulletSpeed : -bulletSpeed;
+    position.y += velocity * dt;
 
-    position += direction.normalized() * speed * dt;
-
-    if (position.y < -height ||
-        position.x < -width ||
-        position.x > game.size.x + width) {
+    // Корректно удаляем пулю, если она за пределами экрана
+    if (position.y < -size.y || position.y > game.size.y + size.y) {
       removeFromParent();
     }
   }

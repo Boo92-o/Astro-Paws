@@ -37,6 +37,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   flame: ^1.30.0
   shared_preferences: ^2.5.3
+  flame_audio: ^2.11.11
+  soundpool:
+    git:
+      url: https://github.com/gen2-eslam/soundpool.git
+      path: soundpool
+
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +67,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/audio/
+
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

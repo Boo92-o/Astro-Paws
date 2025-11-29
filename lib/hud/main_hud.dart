@@ -20,8 +20,8 @@ class MainHud extends PositionComponent with HasGameReference<AstroPawsGame> {
     );
 
     _scoreTextComponent = TextComponent(
-      text: 'Meow Points: ${game.currentScore}',
-      position: Vector2(10, 10),
+      text: 'Astro Points: ${game.currentScore}',
+      position: Vector2(10, 120),
       textRenderer: textRenderer,
     );
 
@@ -34,14 +34,14 @@ class MainHud extends PositionComponent with HasGameReference<AstroPawsGame> {
     var topScore = await HighScoreManager.getHighScore();
     addAll([
       RectangleComponent(
-        position: Vector2(0, 0),
+        position: Vector2(0, 90),
         size: Vector2(250, 130),
         paint: Paint()..color = Colors.black.withOpacity(0.3),
       ),
       _scoreTextComponent,
       TextComponent(
         text: 'Top score: $topScore',
-        position: Vector2(10, 40),
+        position: Vector2(10, 140),
         textRenderer: textRenderer,
       ),
       PauseButton(
