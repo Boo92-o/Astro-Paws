@@ -1,5 +1,3 @@
-
-
 import 'package:astro_paws/components/fuel.dart';
 import 'package:astro_paws/components/gradient_background.dart';
 import 'package:astro_paws/hud/pause_button.dart';
@@ -21,10 +19,10 @@ import 'high_score_manager.dart';
 import 'components/enemy/boss.dart';
 import 'overlays/boss_interface_life.dart';
 import 'overlays/interface_life.dart';
+import 'package:flame/collisions.dart';
 
-
-class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
-  late Player player;
+class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection  {
+   Player? player;
   int currentScore = 0;
   DateTime pawShieldTime = DateTime.now();
   bool hasKibble = false;
@@ -41,10 +39,13 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
   late double count2 = 5;
   late double period3 = count3;
   late double count3 = 9;
-  late final AudioManager audioManager;
+  AudioManager? audioManager;
   int PlayerHP = 100;
   bool hasPawShield = true;
   int BossHp = 200;
+  String selectedSkin = 'player.png';
+  Boss? boss;
+
 
   void updateCount() {
     _countTimer?.cancel();
@@ -72,10 +73,15 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
   }
 
 
+
+
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
     // debugMode = true;
+    audioManager = AudioManager();
+    await add(audioManager!);
 
     add(GradientBackground(colors: [
       const Color(0xFF0A0717),
@@ -100,7 +106,10 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
     // ↓↓↓ ДОБАВЬТЕ ИНИЦИАЛИЗАЦИЮ БОССА ЗДЕСЬ ↓↓↓
     _bossTimer = Timer(60, repeat: true, onTick: _spawnBoss);
     _bossTimer.start();
-    updateCount();
+    if (Assets.restartBoss) {
+      onBossDefeated();
+    }
+  /*  updateCount();*/
 
   }
 
@@ -108,16 +117,18 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
     hasPawShield = false; // сброс перед добавлением игрока
     PlayerHP = 100;
 
-    add(HealthBarInterface());
+    add(LifeInterface());
+
 
     if (_isBossActive) {
       add(BossInterfaceLife());
 /*      _changeToBossBackground();*/
     }
 
-    player = Player(Player.new);
+    player = Player();
 
-    add(player);
+
+    add(player!);
 
 
 
@@ -239,24 +250,6 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
     print('Босс побежден! Следующий через 60 секунд');
   }
 
-  void _changeToBossBackground() {
-    children.whereType<GradientBackground>().forEach((bg) => bg.removeFromParent());
-
-
-  }
-
-  void _changeToNormalBackground() {
-    children.whereType<GradientBackground>().forEach((bg) => bg.removeFromParent());
-
-    add(GradientBackground(colors: [
-      const Color(0xFF0A0717),
-      const Color(0xFF17112F),
-      const Color(0xFF1E163D),
-      const Color(0xFF291D54),
-      const Color(0xFF261860)
-    ]));
-  }
-
   void _reduceAsteroidSpawn() {
     // Полностью останавливаем спавн врагов
     for (final spawner in _enemySpawners) {
@@ -273,31 +266,28 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
     print('Спавн врагов возобновлен');
   }
 
-
-
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    player.moveTo(info.delta.global);
+    player?.moveTo(info.delta.global);
   }
 
   @override
   void onPanStart(DragStartInfo info) {
-    player.startShooting();
+    player?.startShooting();
+
   }
 
   @override
   void onPanEnd(DragEndInfo info) {
-    player.stopShooting();
+    player?.stopShooting();
   }
 
   @override
   void update(double dt) {
     super.update(dt);
     _bossTimer.update(dt);
-    print(PlayerHP);
 
   }
-
 
 
   Future<void> gameOver() async {
@@ -318,7 +308,7 @@ class AstroPawsGame extends FlameGame with PanDetector, HasCollisionDetection {
     PlayerHP = 100;
     hasKibble = false;
     overlays.remove('GameOver');
-    player.removeFromParent();
+    player?.removeFromParent();
     children
         .whereType<EnemyBase>()
         .forEach((enemy) => enemy.removeFromParent());

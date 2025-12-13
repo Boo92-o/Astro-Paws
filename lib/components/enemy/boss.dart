@@ -15,6 +15,12 @@ class Boss extends SpriteComponent with HasGameReference<AstroPawsGame>, Collisi
     anchor: Anchor.center,
   );
 
+
+  void cleanStartHolst() {
+    removeFromParent();
+  }
+
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -39,9 +45,13 @@ class Boss extends SpriteComponent with HasGameReference<AstroPawsGame>, Collisi
       position: position + Vector2(40, 40),
       isEnemyBullet: true,
     );
-
+    final middlebullet = Bullet(
+      position: position + Vector2(0, 40),
+      isEnemyBullet: true,
+    );
     game.add(leftBullet);
     game.add(rightBullet);
+    game.add(middlebullet);
   }
 
   @override
@@ -80,7 +90,7 @@ class Boss extends SpriteComponent with HasGameReference<AstroPawsGame>, Collisi
           removeFromParent();
           game.add(Explosion(position: position));
           game.currentScore += 300;
-
+          game.audioManager?.playSound('explode1.ogg');
           // Вызываем метод завершения боя
           if (game is AstroPawsGame) {
             (game as AstroPawsGame).onBossDefeated();

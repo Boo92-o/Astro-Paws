@@ -33,11 +33,11 @@ class MainHud extends PositionComponent with HasGameReference<AstroPawsGame> {
 
     var topScore = await HighScoreManager.getHighScore();
     addAll([
-      RectangleComponent(
+      /*RectangleComponent(
         position: Vector2(0, 90),
         size: Vector2(250, 130),
         paint: Paint()..color = Colors.black.withOpacity(0.3),
-      ),
+      ),*/
       _scoreTextComponent,
       TextComponent(
         text: 'Top score: $topScore',
@@ -57,7 +57,7 @@ class MainHud extends PositionComponent with HasGameReference<AstroPawsGame> {
 
   @override
   void update(double dt) {
-    _scoreTextComponent.text = 'Meow Points: ${game.currentScore}';
+    _scoreTextComponent.text = 'Cosmo Points: ${game.currentScore}';
 
     // Show "Has paw shield" text only if hasPawShield is true and less than 10 seconds have passed
     final bool showPawShield = game.hasPawShield &&

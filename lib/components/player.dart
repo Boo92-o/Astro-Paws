@@ -10,11 +10,11 @@ class Player extends SpriteAnimationComponent
   SpriteAnimationComponent? _shieldComponent;
   late SpriteAnimation _shieldAnimation;
   final AudioManager audioManager = AudioManager();
-  int hp = 3;
+  int hp = 100;
 
-  Player(param0)
+  Player()
       : super(
-    size: Vector2(70, 120),
+    size: Vector2(75, 100),
     anchor: Anchor.center,
   );
 
@@ -22,9 +22,8 @@ class Player extends SpriteAnimationComponent
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Загружаем анимацию игрока
     animation = await game.loadSpriteAnimation(
-      'player.png',
+      game.selectedSkin,
       SpriteAnimationData.sequenced(
         amount: 3,
         stepTime: 0.2,
@@ -34,18 +33,15 @@ class Player extends SpriteAnimationComponent
 
     position = game.size / 2;
 
-    // Таймер стрельбы
-    _shootTimer = Timer(
-      0.25,
-      repeat: true,
-      onTick: _spawnBullets,
-      autoStart: false,
-    );
+    // Хитбокс (один, точный)
+    add(RectangleHitbox.relative(
+      Vector2(0.7, 0.8),
+      parentSize: size,
+      anchor: Anchor.center,
+    ));
 
-    // Хитбокс
-    add(RectangleHitbox());
+    _shootTimer = Timer(0.25, repeat: true, onTick: _spawnBullets);
 
-    // Загружаем анимацию щита (не компонент)
     _shieldAnimation = await game.loadSpriteAnimation(
       'shield.png',
       SpriteAnimationData.sequenced(
@@ -56,11 +52,11 @@ class Player extends SpriteAnimationComponent
     );
   }
 
-  void moveTo(Vector2 delta) {
-    position.add(delta);
-  }
+  void moveTo(Vector2 delta) => position.add(delta);
+
 
   void startShooting() => _shootTimer.start();
+
 
   void stopShooting() => _shootTimer.stop();
 
@@ -81,56 +77,9 @@ class Player extends SpriteAnimationComponent
     super.update(dt);
     _shootTimer.update(dt);
 
-
-    // Ограничиваем игрока в пределах экрана
     position.clamp(
       Vector2(width / 2, height / 2),
       game.size - Vector2(width / 2, height / 2),
     );
-
-    // ======== ЛОГИКА ЩИТА ========
-
-    if (game.hasPawShield && _shieldComponent == null) {
-      // Создаём компонент щита с анимацией
-      _shieldComponent = SpriteAnimationComponent(
-        animation: _shieldAnimation,
-        size: Vector2(60, 60),
-        anchor: Anchor.center,
-        position: Vector2(size.x / 2, size.y / 2),
-      )..opacity = 0; // начинаем с прозрачности 0
-
-      add(_shieldComponent!);
-    }
-
-    // Если щит должен исчезнуть
-    else if (!game.hasPawShield && _shieldComponent != null) {
-      _shieldComponent!.removeFromParent();
-      _shieldComponent = null;
-    }
-
-    // Обновляем позицию и эффект прозрачности, если щит активен
-    if (_shieldComponent != null) {
-      _shieldComponent!.position = Vector2(size.x / 2, size.y / 2);
-
-      final double elapsed =
-      DateTime.now().difference(game.pawShieldTime).inSeconds.toDouble();
-
-
-
-      final double opacity = (1 - (elapsed / 10)).clamp(0, 1);
-      _shieldComponent!.opacity = opacity;
-
-      // Плавное появление щита (fade in)
-      if (_shieldComponent!.opacity < 1 && elapsed < 1) {
-        _shieldComponent!.opacity = elapsed;
-      }
-
-      // Если щит полностью потух — удаляем
-      if (opacity <= 0) {
-        _shieldComponent!.removeFromParent();
-        _shieldComponent = null;
-        game.hasPawShield = false;
-      }
-    }
   }
 }

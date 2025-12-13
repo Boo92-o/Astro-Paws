@@ -4,6 +4,7 @@ import '/astro_paws.dart';
 import '/overlays/main_menu_overlay.dart';
 import '/overlays/game_over.dart';
 import '/overlays/pause_menu.dart';
+import 'components/skin_menu.dart';
 
 void main() {
   runApp(
@@ -30,6 +31,8 @@ void main() {
                     'MainMenu': (_, game) => MainMenuOverlay(game: game),
                     'GameOver': (_, game) => GameOver(game: game),
                     'Pause': (_, game) => PauseMenu(game: game),
+                    'SkinMenu': (_, game) => SkinMenu(game: game),
+
                   },
                   initialActiveOverlays: const ['MainMenu'],
                 ),

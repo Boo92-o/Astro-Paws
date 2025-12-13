@@ -1,85 +1,100 @@
 import 'package:flame/components.dart';
-import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import '/astro_paws.dart';
 
-/// Интерфейс для отображения жизни игрока.
-/// Добавляется в игру как компонент HUD.
-class HealthBarInterface extends PositionComponent
+/// Единый интерфейс жизней и очков
+class LifeInterface extends PositionComponent
     with HasGameReference<AstroPawsGame> {
-  double _maxHealth = 100;
-  double _currentHealth = 100;
+  late final RectangleComponent _playerHpBg;
+  late final RectangleComponent _playerHpBar;
+  late final RectangleComponent _bossHpBg;
+  late final RectangleComponent _bossHpBar;
+  late final TextComponent _scoreText;
 
-  // Фон и прогресс полосы
-  late final RectangleComponent _backgroundBar;
-  late final RectangleComponent _healthBar;
-  late final TextComponent _textComponent;
+  double _playerMaxHp = 100;
+  double _bossMaxHp = 200;
 
-  HealthBarInterface({
-    double maxHealth = 100,
-  }) : _maxHealth = maxHealth {
-    size = Vector2(200, 20);
-    position = Vector2(20, 20); // позиция HUD в верхнем левом углу
-  }
+  LifeInterface();
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    position = Vector2(10, 10);
+    size = Vector2(game.size.x - 20, 30);
 
-    // Фон (тёмно-серый)
-    _backgroundBar = RectangleComponent(
-      size: size,
+    // 🔹 Фон и полоса игрока
+    _playerHpBg = RectangleComponent(
+      position: Vector2(0, 0),
+      size: Vector2(150, 12),
       paint: Paint()..color = Colors.grey.shade800,
     );
-
-    // Прогресс здоровья (зелёный)
-    _healthBar = RectangleComponent(
-      size: Vector2(size.x, size.y),
+    _playerHpBar = RectangleComponent(
+      position: Vector2(0, 0),
+      size: Vector2(150, 12),
       paint: Paint()..color = Colors.greenAccent,
     );
 
-    // Текст (число HP)
-    _textComponent = TextComponent(
-      text: 'HP: $_currentHealth',
-      textRenderer: TextPaint(
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontFamily: 'RobotoMono',
-        ),
-      ),
-      position: Vector2(0, -18),
+    // 🔹 Фон и полоса босса
+    _bossHpBg = RectangleComponent(
+      position: Vector2(size.x - 195, 0),
+      size: Vector2(150, 12),
+      paint: Paint()..color = Colors.grey.shade800,
+    );
+    _bossHpBar = RectangleComponent(
+      position: Vector2(size.x - 195, 0),
+      size: Vector2(150, 12),
+      paint: Paint()..color = Colors.redAccent,
     );
 
-    add(_backgroundBar);
-    add(_healthBar);
-    add(_textComponent);
-  }
+    // 🔹 Текст очков
+    _scoreText = TextComponent(
+      text: 'Score: 0',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      position: Vector2(size.x / 2 - 40, -4),
+    );
 
-  /// Обновляем значение HP
-  void updateHealth(double currentHealth) {
-    _currentHealth = currentHealth.clamp(0, _maxHealth);
-    final double healthPercent = _currentHealth / _maxHealth;
-
-    _healthBar.size = Vector2(size.x * healthPercent, size.y);
-
-    // Меняем цвет в зависимости от процента HP
-    if (healthPercent > 0.5) {
-      _healthBar.paint.color = Colors.greenAccent;
-    } else if (healthPercent > 0.25) {
-      _healthBar.paint.color = Colors.orangeAccent;
-    } else {
-      _healthBar.paint.color = Colors.redAccent;
-    }
-
-    _textComponent.text = 'HP: ${_currentHealth.toInt()}';
+    addAll([
+      _playerHpBg,
+      _playerHpBar,
+      _bossHpBg,
+      _bossHpBar,
+      _scoreText,
+    ]);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    // Автоматически синхронизируем с HP игрока из AstroPawsGame
-    updateHealth(game.PlayerHP.toDouble());
+    // === HP игрока ===
+    double playerHpPercent =
+    (game.PlayerHP / _playerMaxHp).clamp(0, 1).toDouble();
+    _playerHpBar.size.x = 150 * playerHpPercent;
+    _playerHpBar.paint.color = playerHpPercent > 0.5
+        ? Colors.greenAccent
+        : playerHpPercent > 0.25
+        ? Colors.orangeAccent
+        : Colors.redAccent;
+
+    // === HP босса ===
+    if (game.isBossActive) {
+      double bossHpPercent =
+      (game.BossHp / _bossMaxHp).clamp(0, 1).toDouble();
+      _bossHpBar.size.x = 150 * bossHpPercent;
+      _bossHpBg.opacity = 1;
+      _bossHpBar.opacity = 1;
+    } else {
+      _bossHpBg.opacity = 0;
+      _bossHpBar.opacity = 0;
+    }
+
+    // === Очки ===
+    _scoreText.text = 'Score: ${game.currentScore}';
   }
 }

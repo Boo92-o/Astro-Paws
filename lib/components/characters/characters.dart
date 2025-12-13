@@ -18,7 +18,7 @@ class Characters {
 
   static final CharacterData demonCat = CharacterData(
     name: "Demon Cat",
-    spriteSheet: "Nairan - Bomber - Base.png",
+    spriteSheet: "Nairan.png",
     frames: 6,
     frameSize: Vector2(96, 96),
   );

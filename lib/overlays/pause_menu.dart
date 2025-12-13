@@ -47,7 +47,18 @@ class _PauseMenuState extends State<PauseMenu> {
                   widget.game.resumeEngine();
                   widget.game.overlays.remove('Pause');
                 },
-                child: const Text('🐾 Back to Battle',
+                child: const Text('Back to Fight',
+                  style: TextStyle(
+                    fontSize: 25.0,
+                    color: Colors.black,
+                  ),),
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                 widget.game.audioManager?.stopMusic();
+                },
+                child: const Text('Music Stop',
                   style: TextStyle(
                     fontSize: 25.0,
                     color: Colors.black,

@@ -149,12 +149,14 @@ abstract class Assets {
   /// start_button.png
   static const String assetsImagesStartButton = "start_button.png";
 
+  static const bool restartBoss = false;
+
 
 
   static const String PlayerMoving = "player.png";
 
 
-  static const String KibblePower = "kibble,png";
+  static const String KibblePower = "kibble.png";
 
 
   static const String EnemyMoving = "enemy.png";

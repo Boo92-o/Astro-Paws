@@ -51,7 +51,7 @@ class _GameOverState extends State<GameOver> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Whiskers lost',
+                'SYSTEM OFFLINE',
                 style: TextStyle(
                   fontSize: 24,
                   color: whiteTextColor,
@@ -63,7 +63,7 @@ class _GameOverState extends State<GameOver> {
                   widget.game.resetGame();
                   widget.game.overlays.remove('GameOver');
                 },
-                child: const Text('Try again, Space Cat',
+                child: const Text('Try again, Starfighter',
                   style: TextStyle(
                     fontSize: 25.0,
                     color: Colors.black,
@@ -71,7 +71,7 @@ class _GameOverState extends State<GameOver> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Meow points ${widget.game.currentScore}',
+                'Cosmo points ${widget.game.currentScore}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: whiteTextColor,

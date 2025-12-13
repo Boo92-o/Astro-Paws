@@ -1,6 +1,8 @@
+import 'package:astro_paws/components/player.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import '/astro_paws.dart';
+import 'explosion.dart';
 
 class Bullet extends SpriteComponent
     with HasGameReference<AstroPawsGame>, CollisionCallbacks {
@@ -50,4 +52,32 @@ class Bullet extends SpriteComponent
       removeFromParent();
     }
   }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+
+    // === 1. Если вражеская пуля попала в игрока ===
+    if (isEnemyBullet && other is Player) {
+      game.PlayerHP -= 10; // Урон по игроку
+      game.add(Explosion(position: other.position));
+      if (game.PlayerHP < 0) game.PlayerHP = 0;
+
+      // Эффект взрыва на игроке
+      game.add(Explosion(position: other.position));
+
+      // Удаляем пулю
+      removeFromParent();
+
+
+
+    }
+
+    if (game.PlayerHP <= 0) {
+      other.removeFromParent();
+      (game as AstroPawsGame).gameOver();
+    }
+  }
+
+
 }

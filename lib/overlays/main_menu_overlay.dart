@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
 import '../astro_paws.dart';
+import '../utils/assets.dart';
 
-class MainMenuOverlay extends StatelessWidget {
+
+
+class MainMenuOverlay extends StatefulWidget    {
   final AstroPawsGame game;
 
-  const MainMenuOverlay({super.key, required this.game});
+  MainMenuOverlay({super.key, required this.game});
+
+  @override
+  State<MainMenuOverlay> createState() => MainMenuOverlayState();
+}
+
+class MainMenuOverlayState extends State<MainMenuOverlay> {
+
+
+
+
+ @override
+ void initState(){
+   super.initState();
+   widget.game.audioManager?.playMusic('music.ogg');
+}
+
+ @override
+ void dispose(){
+   super.dispose();
+   widget.game.audioManager?.stopMusic();
+ }
+
 
   @override
   Widget build(BuildContext context) {
@@ -19,21 +44,24 @@ class MainMenuOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'ASTRO PAWS',
+                'The   Last    Starfighter ',
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 55,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
-                  shadows: [Shadow(blurRadius: 10, color: Colors.purple)],
+                  shadows: [Shadow(blurRadius: 63, color: Colors.purple)],
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
               ElevatedButton(
                 onPressed: () {
-                  game.overlays.remove('MainMenu');
-                  game.initializeGame();
-                  game.resumeEngine();
+                  widget.game.overlays.remove('MainMenu');
+                  widget.game.initializeGame();
+                  widget.game.resumeEngine();
+                  widget.game.audioManager?.playMusic(Assets.assetsAudioMusic);
+                  Assets.restartBoss = true;
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurpleAccent,
                   padding:
@@ -43,27 +71,26 @@ class MainMenuOverlay extends StatelessWidget {
                 ),
                 child: const Text(
                   'START GAME',
-                  style: TextStyle(fontSize: 22, color: Colors.white),
+                  style: TextStyle(fontSize: 23, color: Colors.white),
                 ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   // Позже можно добавить выбор персонажей
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Character select coming soon!")),
-                  );
+                  widget.game.overlays.remove('MainMenu');
+                  widget.game.overlays.add('SkinMenu');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                 ),
                 child: const Text(
                   'SELECT CHARACTER',
-                  style: TextStyle(fontSize: 20, color: Colors.white),
+                  style: TextStyle(fontSize: 22, color: Colors.white),
                 ),
               ),
             ],
@@ -72,4 +99,8 @@ class MainMenuOverlay extends StatelessWidget {
       ],
     );
   }
+
+
+
+
 }
